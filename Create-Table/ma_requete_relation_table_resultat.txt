@@ -1,0 +1,270 @@
+SCRIPT:
+Résultat du script
+
+c:\DB2>db2 -stvf ma_requete_relation_table.sql
+CREATE DATABASE BDDTEST
+DB20000I La commande CREATE DATABASE a abouti.
+
+CONNECT TO BDDTEST
+
+   Informations de connexion à la base de données
+
+ Serveur de base de données             = DB2/NT64 11.5.9.0
+ ID utilisateur SQL                     = GENEV
+ Alias local de la base de données      = BDDTEST
+
+
+CREATE TABLE Customers (CustomerID INT NOT NULL PRIMARY KEY, FirstName VARCHAR(255), LastName VARCHAR(255), Email VARCHAR(255) NOT NULL UNIQUE)
+DB20000I La commande SQL a abouti.
+
+CREATE TABLE Categories (CategoryID INT NOT NULL PRIMARY KEY, CategoryName VARCHAR(255))
+DB20000I La commande SQL a abouti.
+
+CREATE TABLE Products (ProductID INT NOT NULL PRIMARY KEY, ProductName VARCHAR(255), Price DECIMAL, CategoryID INT, FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID))
+DB20000I La commande SQL a abouti.
+
+CREATE TABLE Orders (OrderID INT NOT NULL PRIMARY KEY, OrderDate DATE, CustomerID INT, FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID))
+DB20000I La commande SQL a abouti.
+
+SELECT * FROM Orders
+
+ORDERID     ORDERDATE  CUSTOMERID
+----------- ---------- -----------
+
+  0 enregistrement(s) sélectionné(s).
+
+
+CREATE TABLE OrderDetails (OrderDetailID INT NOT NULL PRIMARY KEY, OrderID INT, ProductID INT, Quantity INT, FOREIGN KEY (OrderID) REFERENCES Orders(OrderID), FOREIGN KEY (ProductID) REFERENCES Products(ProductID))
+DB20000I La commande SQL a abouti.
+
+SELECT * FROM OrderDetails
+
+ORDERDETAILID ORDERID     PRODUCTID   QUANTITY
+------------- ----------- ----------- -----------
+
+  0 enregistrement(s) sélectionné(s).
+
+
+INSERT INTO Customers (CustomerID, FirstName, LastName, Email) VALUES (1, 'John', 'Doe', 'john.doe@example.com'), (2, 'Jane', 'Smith', 'jane.smith@example.com'), (3, 'GeneviÃ¨ve', 'Giannasi', 'genevieve.giannasi@gmail.com')
+DB20000I La commande SQL a abouti.
+
+SELECT * FROM Customers
+
+CUSTOMERID  FIRSTNAME
+                                                                                                                LASTNAME
+
+                                                        EMAIL
+
+----------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+          1 John
+                                                                                                                Doe
+
+                                                        john.doe@example.com
+
+          2 Jane
+                                                                                                                Smith
+
+                                                        jane.smith@example.com
+
+          3 GeneviÃ¨ve
+                                                                                                                Giannasi
+
+                                                        genevieve.giannasi@gmail.com
+
+
+  3 enregistrement(s) sélectionné(s).
+
+
+INSERT INTO Categories (CategoryID, CategoryName) VALUES (1, 'Electronics'), (2, 'Clothing')
+DB20000I La commande SQL a abouti.
+
+SELECT * FROM Categories
+
+CATEGORYID  CATEGORYNAME
+
+----------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+          1 Electronics
+
+          2 Clothing
+
+
+  2 enregistrement(s) sélectionné(s).
+
+
+INSERT INTO Products (ProductID, ProductName, Price, CategoryID) VALUES (1, 'Laptop', 999.99, 1), (2, 'Smartphone', 499.99, 1), (3, 'T-Shirt', 19.99, 2)
+DB20000I La commande SQL a abouti.
+
+SELECT * FROM Products
+
+PRODUCTID   PRODUCTNAME
+                                                                                                                PRICE   CATEGORYID
+----------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ------- -----------
+          1 Laptop
+                                                                                                                   999,           1
+          2 Smartphone
+                                                                                                                   499,           1
+          3 T-Shirt
+                                                                                                                    19,           2
+
+  3 enregistrement(s) sélectionné(s).
+
+
+INSERT INTO Orders (OrderID, OrderDate, CustomerID) VALUES (101, '2023-01-01', 1), (102, '2023-01-02', 2)
+DB20000I La commande SQL a abouti.
+
+SELECT * FROM Orders
+
+ORDERID     ORDERDATE  CUSTOMERID
+----------- ---------- -----------
+        101 01.01.2023           1
+        102 02.01.2023           2
+
+  2 enregistrement(s) sélectionné(s).
+
+
+INSERT INTO OrderDetails (OrderDetailID, OrderID, ProductID, Quantity) VALUES (201, 101, 1, 2), (202, 102, 3, 5), (203, 101, 2, 2), (204, 102, 3, 1)
+DB20000I La commande SQL a abouti.
+
+SELECT * FROM OrderDetails
+
+ORDERDETAILID ORDERID     PRODUCTID   QUANTITY
+------------- ----------- ----------- -----------
+          201         101           1           2
+          202         102           3           5
+          203         101           2           2
+          204         102           3           1
+
+  4 enregistrement(s) sélectionné(s).
+
+
+SELECT Customers.*, Orders.*, OrderDetails.*, Products.*, Categories.* FROM Customers JOIN Orders ON Customers.CustomerID = Orders.CustomerID JOIN OrderDetails ON OrderDetails.OrderID = Orders.OrderID JOIN Products ON OrderDetails.ProductID = Products.ProductID JOIN Categories ON Products.CategoryID = Categories.CategoryID ORDER BY Orders.CustomerID ASC
+
+CUSTOMERID  FIRSTNAME
+                                                                                                                LASTNAME
+
+                                                        EMAIL
+
+ORDERID     ORDERDATE  CUSTOMERID  ORDERDETAILID ORDERID     PRODUCTID   QUANTITY    PRODUCTID   PRODUCTNAME
+
+                                         PRICE   CATEGORYID  CATEGORYID  CATEGORYNAME
+
+
+----------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------- ---------- ----------- ------------- ----------- ----------- ----------- ----------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ------- ----------- ----------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+          1 John
+                                                                                                                Doe
+
+                                                        john.doe@example.com
+
+        101 01.01.2023           1           201         101           1           2           1 Laptop
+
+                                            999,           1           1 Electronics
+
+
+          1 John
+                                                                                                                Doe
+
+                                                        john.doe@example.com
+
+        101 01.01.2023           1           203         101           2           2           2 Smartphone
+
+                                            499,           1           1 Electronics
+
+
+          2 Jane
+                                                                                                                Smith
+
+                                                        jane.smith@example.com
+
+        102 02.01.2023           2           202         102           3           5           3 T-Shirt
+
+                                             19,           2           2 Clothing
+
+
+          2 Jane
+                                                                                                                Smith
+
+                                                        jane.smith@example.com
+
+        102 02.01.2023           2           204         102           3           1           3 T-Shirt
+
+                                             19,           2           2 Clothing
+
+
+
+  4 enregistrement(s) sélectionné(s).
+
+
+SELECT Customers.CustomerID, Customers.LastName, SUM(OrderDetails.Quantity) FROM Customers JOIN Orders ON Customers.CustomerID = Orders.CustomerID JOIN OrderDetails ON OrderDetails.OrderID = Orders.OrderID GROUP BY Customers.CustomerID, Customers.LastName ORDER BY SUM(OrderDetails.Quantity) DESC LIMIT 1
+
+CUSTOMERID  LASTNAME
+                                                                                                                3
+----------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -----------
+          2 Smith
+                                                                                                                          6
+
+  1 enregistrement(s) sélectionné(s).
+
+
+SELECT Categories.CategoryID, CategoryName, Products.ProductID, ProductName, SUM(Quantity) as TotalQty FROM Products inner JOIN OrderDetails ON OrderDetails.ProductID = Products.ProductID INNER JOIN Categories ON Categories.CategoryID = Products.CategoryID GROUP BY Products.ProductID, ProductName, Categories.CategoryID, CategoryName
+
+CATEGORYID  CATEGORYNAME
+                                                                                                                PRODUCTID   PRODUCTNAME
+
+                                                                    TOTALQTY
+----------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -----------
+          1 Electronics
+                                                                                                                          1 Laptop
+
+                                                                              2
+          1 Electronics
+                                                                                                                          2 Smartphone
+
+                                                                              2
+          2 Clothing
+                                                                                                                          3 T-Shirt
+
+                                                                              6
+
+  3 enregistrement(s) sélectionné(s).
+
+
+SELECT Customers.* FROM Customers LEFT JOIN Orders ON Customers.CustomerID = Orders.CustomerID WHERE Orders.CustomerID IS NULL
+
+CUSTOMERID  FIRSTNAME
+                                                                                                                LASTNAME
+
+                                                        EMAIL
+
+----------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+          3 GeneviÃ¨ve
+                                                                                                                Giannasi
+
+                                                        genevieve.giannasi@gmail.com
+
+
+  1 enregistrement(s) sélectionné(s).
+
+
+DROP TABLE OrderDetails
+DB20000I La commande SQL a abouti.
+
+DROP TABLE Orders
+DB20000I La commande SQL a abouti.
+
+DROP TABLE Products
+DB20000I La commande SQL a abouti.
+
+DROP TABLE Categories
+DB20000I La commande SQL a abouti.
+
+DROP TABLE Customers
+DB20000I La commande SQL a abouti.
+
+DISCONNECT ALL
+DB20000I La commande SQL DISCONNECT a abouti.
+
+DROP DATABASE BDDTEST
+DB20000I La commande DROP DATABASE a abouti.
+
+TERMINATE
+DB20000I La commande TERMINATE a abouti.
